@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>My Graphic Equalizer</title>
+
+<style>
+	#mp3Player {width: 100%;
+				height: 600px;
+				background-image: url("tape.jpg");
+				padding: 5px;
+				margin: 50px auto;}
+
+	audio {width: 80%;
+		   height: 80%;
+		   background: #000;
+		   float: left;}
+
+	canvas{width: 100%;
+		   height: 580px;
+		   background: transparent;
+		   float: left;}
+	
+
+</style>
+
+</head>
+
+<body>
+	<div id="mp3Player">
+		<div id="audiobox">
+			<canvas id="analyser"></canvas>
+		</div>
+	</div>
+
+	<script>
+	//create a new audio object
+	var audio = new Audio();
+	audio.src = 'track.mp3';
+	audio.controls = true;
+	audio.loop = true;
+	audio.autoplay = true;
+
+	// Establish all new variables
+	var canvas, ctx, source, context, analyser, fbc_array, bars, bar_x,
+	bar_width, bar_height;
+
+	// Initialize this player and Equalizer
+	window.addEventListener('load', initMp3Player, false);
+	function initMp3Player(){
+		document.getElementById('audiobox').appendChild(audio);
+
+	// Adjusted mode to allow it to work on firefox
+		var context;
+		if (typeof AudioContext !== "undefined") {
+			context = new AudioContext();
+		} else if (typeof webkitAudioContext !== "undefined") {
+			context = new webkitAudioContext();
+		} else {
+			throw new Error('AudioContext not supported. :(');
+		}
+
+	analyser = context.createAnalyser();
+	canvas = document.getElementById('analyser');
+	ctx = canvas.getContext('2d');	
+
+	source = context.createMediaElementSource(audio);
+	source.connect(analyser);
+	analyser.connect(context.destination);
+	frameLooper();
+
+	}
+
+	function frameLooper (){
+		window.requestAnimationFrame(frameLooper);
+		fbc_array = new Uint8Array(analyser.frequencyBinCount);
+		analyser.getByteFrequencyData(fbc_array);
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.fillStyle = '#FF3741';
+		bars = 80;
+		for (var i = 0; i < bars; i++){
+			bar_x = i * 5;
+			bar_width = 4;
+			bar_height = -(fbc_array[i] / 3);
+			ctx.fillRect(bar_x, canvas.height, bar_width, bar_height);
+
+		}
+	}
+
+
+	</script>
+
+</body>
+
+</html>
